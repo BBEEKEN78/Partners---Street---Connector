@@ -33,7 +33,6 @@ async function streetGet(path) {
   const text = await response.text();
 
   let data;
-
   try {
     data = JSON.parse(text);
   } catch {
@@ -53,7 +52,48 @@ async function streetGet(path) {
 
 app.get("/street/test", async (req, res) => {
   try {
-    const data = await streetGet("/");
+    const data = await streetGet("/companies");
+
+    res.json({
+      connected: true,
+      data
+    });
+  } catch (error) {
+    res.status(500).json({
+      connected: false,
+      error: error.message
+    });
+  }
+});
+
+app.get("/street/properties", async (req, res) => {
+  try {
+    const page = req.query.page || 1;
+
+    const data = await streetGet(
+      `/properties?page[number]=${encodeURIComponent(page)}`
+    );
+
+    res.json({
+      connected: true,
+      data
+    });
+  } catch (error) {
+    res.status(500).json({
+      connected: false,
+      error: error.message
+    });
+  }
+});
+
+app.get("/street/companies", async (req, res) => {
+  try {
+    const page = req.query.page || 1;
+
+    const data = await streetGet(
+      `/companies?page[number]=${encodeURIComponent(page)}`
+    );
+
     res.json({
       connected: true,
       data
