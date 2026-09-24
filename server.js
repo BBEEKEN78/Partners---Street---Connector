@@ -24,9 +24,7 @@ async function streetGet(path) {
   const response = await fetch(`${STREET_BASE_URL}${path}`, {
     method: "GET",
     headers: {
-      Authorization: `Bearer ${STREET_API_TOKEN}`,
-      Accept: "application/json",
-      "User-Agent": "Partners-Street-Connector/1.0"
+      Authorization: `Bearer ${STREET_API_TOKEN}`
     }
   });
 
@@ -52,7 +50,7 @@ async function streetGet(path) {
 }
 
 /*
- * Basic connection test.
+ * Basic Street connection test
  */
 app.get("/street/test", async (req, res) => {
   try {
@@ -71,7 +69,7 @@ app.get("/street/test", async (req, res) => {
 });
 
 /*
- * Companies.
+ * Companies list
  */
 app.get("/street/companies", async (req, res) => {
   try {
@@ -94,65 +92,30 @@ app.get("/street/companies", async (req, res) => {
 });
 
 /*
- * Pull companies and then request their related properties.
- *
- * Defaults to the first 5 companies so that we do not hammer
- * the Street API while we are testing.
- *
- * Example:
- * /street/companies-with-properties
- * /street/companies-with-properties?page=2
- * /street/companies-with-properties?page=1&limit=10
+ * Test related properties for one company
  */
-app.get("/street/companies-with-properties", async (req, res) => {
+app.get("/street/company-properties", async (req, res) => {
   try {
-    const page = req.query.page || 1;
+    const companies = await streetGet("/companies?page[number]=1");
 
-    let limit = Number(req.query.limit || 5);
+    const firstCompany = companies?.data?.[0];
 
-    if (!Number.isFinite(limit) || limit < 1) {
-      limit = 5;
+    if (!firstCompany) {
+      return res.status(404).json({
+        connected: true,
+        error: "No company records returned by Street"
+      });
     }
 
-    if (limit > 10) {
-      limit = 10;
-    }
-
-    const companiesResponse = await streetGet(
-      `/companies?page[number]=${encodeURIComponent(page)}`
+    const data = await streetGet(
+      `/companies/${encodeURIComponent(firstCompany.id)}?include=properties`
     );
-
-    const companies = Array.isArray(companiesResponse?.data)
-      ? companiesResponse.data.slice(0, limit)
-      : [];
-
-    const results = [];
-
-    for (const company of companies) {
-      try {
-        const companyWithProperties = await streetGet(
-          `/companies/${encodeURIComponent(company.id)}?include=properties`
-        );
-
-        results.push({
-          company_id: company.id,
-          company_name: company?.attributes?.name || null,
-          result: companyWithProperties
-        });
-      } catch (error) {
-        results.push({
-          company_id: company.id,
-          company_name: company?.attributes?.name || null,
-          error: error.message
-        });
-      }
-    }
 
     res.json({
       connected: true,
-      page: Number(page),
-      companies_checked: results.length,
-      results
+      company_id: firstCompany.id,
+      company_name: firstCompany?.attributes?.name || null,
+      data
     });
   } catch (error) {
     res.status(500).json({
