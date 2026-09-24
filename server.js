@@ -24,7 +24,7 @@ async function streetGet(path) {
   const response = await fetch(`${STREET_BASE_URL}${path}`, {
     headers: {
       Authorization: `Bearer ${STREET_API_TOKEN}`,
-      Accept: "application/json"
+      Accept: "application/vnd.api+json"
     }
   });
 
