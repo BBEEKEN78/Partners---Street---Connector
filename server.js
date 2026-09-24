@@ -49,7 +49,7 @@ async function streetGet(path) {
 
 app.get("/street/test", async (req, res) => {
   try {
-    const data = await streetGet("/companies");
+    const data = await streetGet("/properties");
 
     res.json({
       connected: true,
