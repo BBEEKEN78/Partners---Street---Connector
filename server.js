@@ -1,7 +1,6 @@
 import express from "express";
 
 const app = express();
-
 const PORT = process.env.PORT || 3000;
 const STREET_API_TOKEN = process.env.STREET_API_TOKEN;
 const STREET_BASE_URL = "https://street.co.uk/open-api/v1";
@@ -29,8 +28,8 @@ async function streetGet(path) {
   });
 
   const text = await response.text();
-
   let data;
+
   try {
     data = JSON.parse(text);
   } catch {
@@ -48,3 +47,22 @@ async function streetGet(path) {
   return data;
 }
 
+app.get("/street/test", async (req, res) => {
+  try {
+    const data = await streetGet("/companies");
+
+    res.json({
+      connected: true,
+      data
+    });
+  } catch (error) {
+    res.status(500).json({
+      connected: false,
+      error: error.message
+    });
+  }
+});
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Partners Street Connector running on port ${PORT}`);
+});
