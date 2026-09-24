@@ -22,15 +22,18 @@ app.get("/", (req, res) => {
 
 async function streetGet(path) {
   const response = await fetch(`${STREET_BASE_URL}${path}`, {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${STREET_API_TOKEN}`,
-      Accept: "application/vnd.api+json"
+      Accept: "application/json",
+      "User-Agent": "Partners-Street-Connector/1.0"
     }
   });
 
   const text = await response.text();
 
   let data;
+
   try {
     data = JSON.parse(text);
   } catch {
@@ -50,7 +53,7 @@ async function streetGet(path) {
 
 app.get("/street/test", async (req, res) => {
   try {
-    const data = await streetGet("/companies");
+    const data = await streetGet("/");
     res.json({
       connected: true,
       data
